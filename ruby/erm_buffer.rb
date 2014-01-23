@@ -32,8 +32,48 @@ class ErmBuffer
     end
   end
 
+  module OptionalDoKeyword
+    def initialize(*args)
+      @ignore_do_depth = []
+      @current_depth = 0
+      super
+    end
+
+    def on_lparen(token)
+      @current_depth += 1
+      super
+    end
+
+    def on_rparen(token)
+      @ignore_do_depth.pop if @ignore_do_depth[-1] == @current_depth
+      @current_depth -= 1
+      super
+    end
+
+    def on_nl(token)
+      if @ignore_do_depth[-1] == @current_depth
+        @ignore_do_depth.pop
+      end
+      super
+    end
+
+    def on_kw(token)
+      if token == "do" && @ignore_do_depth[-1] == @current_depth
+        @ignore_do_depth.pop
+        return add(:kw, token)
+      end
+
+      if %w(for while until).include? token
+        @ignore_do_depth << @current_depth
+      end
+
+      super
+    end
+  end
+
   class Parser < ::Ripper   #:nodoc: internal use only
     include Adder
+    prepend OptionalDoKeyword
 
     attr_accessor :heredoc, :mode
 

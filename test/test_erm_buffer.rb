@@ -228,4 +228,34 @@ puts "#{
       }
                 )
   end
+
+  def test_keyword_do_block
+    assert_equal "((32 1 32 b 2 l 8 r 9 l 18 r 19 d 26 e 29)(0 1 2 7 26 28 29)(10 2 7 26 28 29 32))",
+      parse_text(%q{
+while [].each
+  [].each do
+end
+})
+  end
+
+  def test_keyword_do_cond
+    assert_equal "((20 1 20 b 2 e 17)(0 1 2 7 8 13 14 16 17)(10 2 7 8 13 14 16 17 20))",
+      parse_text(%q{
+while false do
+end
+})
+
+    assert_equal "((22 1 22 b 2 l 8 r 9 e 19)(0 1 2 7 16 18 19)(10 2 7 16 18 19 22))",
+      parse_text(%q{
+while [].each do
+end
+})
+
+    assert_equal "((42 1 42 b 2 l 8 b 9 e 31 r 34 e 39)(0 1 2 7 9 14 15 20 21 23 31 34 36 38 39)(10 2 7 9 14 15 20 21 23 31 34 36 38 39 42))",
+      parse_text(%q{
+while (until false do
+       end) do
+end
+})
+  end
 end
