@@ -56,6 +56,7 @@ class ErmBuffer
       end
       super
     end
+    alias on_semicolon on_nl
 
     def on_kw(token)
       if token == "do" && @ignore_do_depth[-1] == @current_depth
