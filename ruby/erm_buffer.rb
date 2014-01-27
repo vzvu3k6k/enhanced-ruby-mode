@@ -34,38 +34,39 @@ class ErmBuffer
 
   module OptionalDoKeyword
     def initialize(*args)
-      @ignore_do_depth = []
-      @current_depth = 0
+      @cond_stack = []
       super
     end
 
-    def on_lparen(token)
-      @current_depth += 1
-      super
-    end
-
-    def on_rparen(token)
-      @ignore_do_depth.pop if @ignore_do_depth[-1] == @current_depth
-      @current_depth -= 1
-      super
-    end
-
-    def on_nl(token)
-      if @ignore_do_depth[-1] == @current_depth
-        @ignore_do_depth.pop
+    [:on_rparen, :on_rbrace, :on_rbracket].each do |name|
+      define_method(name) do |*args|
+        @cond_stack.pop
+        super(*args)
       end
-      super
     end
-    alias on_semicolon on_nl
+
+    [:on_lparen, :on_lbrace, :on_lbracket].each do |name|
+      define_method(name) do |*args|
+        @cond_stack.push false
+        super(*args)
+      end
+    end
+
+    [:on_nl, :on_semicolon].each do |name|
+      define_method(name) do |*args|
+        @cond_stack.pop if @cond_stack.last
+        super(*args)
+      end
+    end
 
     def on_kw(token)
-      if token == "do" && @ignore_do_depth[-1] == @current_depth
-        @ignore_do_depth.pop
-        return add(:kw, token)
+      if token == "do" && @cond_stack.last
+        @cond_stack.pop
+        return add(:comment, token)
       end
 
       if %w(for while until).include? token
-        @ignore_do_depth << @current_depth
+        @cond_stack.push true
       end
 
       super
