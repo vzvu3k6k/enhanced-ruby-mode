@@ -65,7 +65,7 @@ class ErmBuffer
         return add(:comment, token)
       end
 
-      if %w(for while until).include? token
+      if %w(in while until).include? token
         @cond_stack.push true
       end
 
