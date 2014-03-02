@@ -68,7 +68,7 @@ class ErmBuffer
         if @optional_do_stack.last == :wait_optional_do
           @optional_do_stack.pop
           @optional_do_stack.push :wait_end
-          return add(:comment, token)
+          return add(:kw, token)
         end
       when "end"
         @optional_do_stack.pop if @optional_do_stack.last == :wait_end
