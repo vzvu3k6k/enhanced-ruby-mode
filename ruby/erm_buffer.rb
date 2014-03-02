@@ -34,29 +34,29 @@ class ErmBuffer
 
   module OptionalDoKeyword
     def initialize(*args)
-      @cond_stack = []
+      @optional_do_stack = []
       super
     end
 
     [:on_rparen, :on_rbrace, :on_rbracket].each do |name|
       define_method(name) do |*args|
-        @cond_stack.pop
+        @optional_do_stack.pop
         super(*args)
       end
     end
 
     [:on_lparen, :on_lbrace, :on_lbracket].each do |name|
       define_method(name) do |*args|
-        @cond_stack.push false
+        @optional_do_stack.push false
         super(*args)
       end
     end
 
     [:on_nl, :on_semicolon].each do |name|
       define_method(name) do |*args|
-        if @cond_stack.last == :wait_optional_do
-          @cond_stack.pop
-          @cond_stack.push :wait_end
+        if @optional_do_stack.last == :wait_optional_do
+          @optional_do_stack.pop
+          @optional_do_stack.push :wait_end
         end
         super(*args)
       end
@@ -65,15 +65,15 @@ class ErmBuffer
     def on_kw(token)
       case token
       when "do"
-        if @cond_stack.last == :wait_optional_do
-          @cond_stack.pop
-          @cond_stack.push :wait_end
+        if @optional_do_stack.last == :wait_optional_do
+          @optional_do_stack.pop
+          @optional_do_stack.push :wait_end
           return add(:comment, token)
         end
       when "end"
-        @cond_stack.pop if @cond_stack.last == :wait_end
-      when *%w(in while until)
-        @cond_stack.push :wait_optional_do
+        @optional_do_stack.pop if @optional_do_stack.last == :wait_end
+      when "in", "while", "until"
+        @optional_do_stack.push :wait_optional_do
       end
 
       super
