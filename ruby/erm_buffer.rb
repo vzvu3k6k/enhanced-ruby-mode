@@ -38,14 +38,14 @@ class ErmBuffer
       super
     end
 
-    [:on_rparen, :on_rbrace, :on_rbracket].each do |name|
+    [:on_rparen, :on_rbrace, :on_rbracket, :on_embexpr_end].each do |name|
       define_method(name) do |*args|
         @optional_do_stack.pop
         super(*args)
       end
     end
 
-    [:on_lparen, :on_lbrace, :on_lbracket].each do |name|
+    [:on_lparen, :on_lbrace, :on_lbracket, :on_embexpr_beg].each do |name|
       define_method(name) do |*args|
         @optional_do_stack.push false
         super(*args)
